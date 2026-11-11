@@ -7,17 +7,40 @@ import java.util.List;
 
 public class PedidoRequestDTO {
 
-    @NotBlank(message = "El nombre del cliente no puede estar vacío")
-    private String cliente;
+	@NotBlank(message = "El cliente es obligatorio")
+	private String cliente;
 
-    @NotEmpty(message = "El pedido debe contener al menos un producto")
-    @Valid // Aplica la validación en cada elemento de la lista
-    private List<ItemPedidoRequestDTO> items;
+	@NotBlank(message = "El método de pago es obligatorio")
+	private String metodoPago;
 
-    public PedidoRequestDTO() {}
+	@NotEmpty(message = "El pedido debe contener al menos un producto")
+	@Valid
+	private List<ItemPedidoRequestDTO> items;
 
-    public String getCliente() { return cliente; }
-    public void setCliente(String cliente) { this.cliente = cliente; }
-    public List<ItemPedidoRequestDTO> getItems() { return items; }
-    public void setItems(List<ItemPedidoRequestDTO> items) { this.items = items; }
+	public PedidoRequestDTO() {
+	}
+
+	public String getCliente() {
+		return cliente;
+	}
+
+	public void setCliente(String cliente) {
+		this.cliente = cliente;
+	}
+
+	public String getMetodoPago() {
+		return metodoPago;
+	}
+
+	public void setMetodoPago(String metodoPago) {
+		this.metodoPago = metodoPago;
+	}
+
+	public List<ItemPedidoRequestDTO> getItems() {
+		return items;
+	}
+
+	public void setItems(List<ItemPedidoRequestDTO> items) {
+		this.items = items;
+	}
 }

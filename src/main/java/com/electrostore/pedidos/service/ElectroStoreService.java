@@ -5,103 +5,89 @@ import com.electrostore.pedidos.dto.PedidoRequestDTO;
 import com.electrostore.pedidos.entity.DetallePedido;
 import com.electrostore.pedidos.entity.Pedido;
 import com.electrostore.pedidos.entity.Producto;
-import com.electrostore.pedidos.exception.BadRequestException;
-import com.electrostore.pedidos.exception.ResourceNotFoundException;
 import com.electrostore.pedidos.repository.PedidoRepository;
-import com.electrostore.pedidos.repository.ProductoCustomRepositoryImpl;
 import com.electrostore.pedidos.repository.ProductoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class ElectroStoreService {
 
-    @Autowired
-    private ProductoRepository productoRepository;
+	@Autowired
+	private ProductoRepository productoRepository;
 
-    @Autowired
-    private PedidoRepository pedidoRepository;
+	@Autowired
+	private PedidoRepository pedidoRepository;
 
-    @Autowired
-    private ProductoCustomRepositoryImpl productoCustomRepository;
+	public List<Producto> listarProductos() {
+		return productoRepository.findAll();
+	}
 
-    public List<Producto> listarProductos() {
-        return productoRepository.findAll();
-    }
+	public Producto obtenerProductoPorId(Long id) {
+		return productoRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Producto no encontrado con el ID: " + id));
+	}
 
-    public Producto obtenerProductoPorId(Long id) {
-        return productoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con el ID: " + id));
-    }
+	public Producto guardarProducto(Producto producto) {
+		return productoRepository.save(producto);
+	}
 
-    public Producto guardarProducto(Producto producto) {
-        return productoRepository.save(producto);
-    }
+	public void eliminarProducto(Long id) {
+		if (!productoRepository.existsById(id)) {
+			throw new RuntimeException("Producto no encontrado con el ID: " + id);
+		}
+		productoRepository.deleteById(id);
+	}
 
-    public void eliminarProducto(Long id) {
-        if (!productoRepository.existsById(id)) {
-            throw new ResourceNotFoundException("No se puede eliminar. Producto no encontrado con ID: " + id);
-        }
-        productoRepository.deleteById(id);
-    }
+	@Transactional
+	public Pedido crearPedido(PedidoRequestDTO requestDTO) {
 
-    public List<Producto> buscarProductosPorCategoriaNamed(String categoria) {
-        return productoRepository.findByCategoriaNamed(categoria);
-    }
+		Pedido pedido = new Pedido();
+		pedido.setCliente(requestDTO.getCliente());
+		pedido.setFechaCompra(LocalDateTime.now());
+		pedido.setEstadoPedido("PENDIENTE");
+		pedido.setMetodoPago(requestDTO.getMetodoPago());
 
-    public List<Producto> buscarPorPrecioMaximo(BigDecimal precioMax) {
-        return productoRepository.buscarPorPrecioMaximoJPQL(precioMax);
-    }
+		BigDecimal montoTotalCalculado = BigDecimal.ZERO;
+		List<DetallePedido> detallesEntity = new ArrayList<>();
 
-    public List<Producto> buscarPorFiltroAvanzadoEM(String keyword, Integer stockMin) {
-        return productoCustomRepository.buscarPorFiltrosAvanzados(keyword, stockMin);
-    }
+		if (requestDTO.getItems() != null && !requestDTO.getItems().isEmpty()) {
+			for (ItemPedidoRequestDTO item : requestDTO.getItems()) {
+				Producto producto = productoRepository.findById(item.getProductoId())
+						.orElseThrow(() -> new RuntimeException("Producto no encontrado ID: " + item.getProductoId()));
 
-    @Transactional
-    public Pedido crearPedido(PedidoRequestDTO request) {
-        Pedido pedido = new Pedido();
-        pedido.setCliente(request.getCliente());
+				if (producto.getStock() < item.getCantidad()) {
+					throw new RuntimeException("Stock insuficiente para: " + producto.getNombre() + ". Disponible: "
+							+ producto.getStock());
+				}
 
-        BigDecimal montoTotalAcumulado = BigDecimal.ZERO;
+				producto.setStock(producto.getStock() - item.getCantidad());
+				productoRepository.save(producto);
 
-        for (ItemPedidoRequestDTO item : request.getItems()) {
-            Producto producto = productoRepository.findById(item.getProductoId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con el ID: " + item.getProductoId()));
+				BigDecimal precioUnitario = producto.getPrecio();
+				BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(item.getCantidad()));
+				montoTotalCalculado = montoTotalCalculado.add(subtotal);
 
-            if (producto.getStock() < item.getCantidad()) {
-                throw new BadRequestException("Stock insuficiente para el producto: " + producto.getNombre() 
-                        + ". Stock disponible: " + producto.getStock() + ", solicitado: " + item.getCantidad());
-            }
+				DetallePedido detalle = new DetallePedido();
+				detalle.setPedido(pedido);
+				detalle.setProducto(producto);
+				detalle.setCantidad(item.getCantidad()); // <-- ESTA ES LA LÍNEA AGREGADA
+				detalle.setPrecioUnitario(precioUnitario);
+				detalle.setSubtotal(subtotal);
 
-            producto.setStock(producto.getStock() - item.getCantidad());
-            productoRepository.save(producto);
+				detallesEntity.add(detalle);
+			}
+		}
 
-            BigDecimal subtotal = producto.getPrecio().multiply(BigDecimal.valueOf(item.getCantidad()));
-            montoTotalAcumulado = montoTotalAcumulado.add(subtotal);
+		pedido.setMontoTotal(montoTotalCalculado);
+		pedido.setDetalles(detallesEntity);
 
-            DetallePedido detalle = new DetallePedido();
-            detalle.setProducto(producto);
-            detalle.setCantidad(item.getCantidad());
-            detalle.setPrecioUnitario(producto.getPrecio());
-            detalle.setSubtotal(subtotal);
-
-            pedido.addDetalle(detalle);
-        }
-
-        pedido.setMontoTotal(montoTotalAcumulado);
-        return pedidoRepository.save(pedido);
-    }
-
-    public List<Pedido> listarPedidos() {
-        return pedidoRepository.findAll();
-    }
-
-    public Pedido obtenerPedidoPorId(Long id) {
-        return pedidoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado con el ID: " + id));
-    }
+		return pedidoRepository.save(pedido);
+	}
 }
