@@ -1,16 +1,19 @@
 package com.electrostore.pedidos.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public class ProductoDTO {
 
 	private Long id;
 	private String nombre;
 	private String categoria;
-	private BigDecimal precio;
+	private BigDecimal precioCompra;
+	private BigDecimal precioVenta;
 	private Integer stock;
 	private String marca;
 	private String codigoBarras;
+	private LocalDate fechaIngreso;
 
 	public ProductoDTO() {
 	}
@@ -40,12 +43,20 @@ public class ProductoDTO {
 		this.categoria = categoria;
 	}
 
-	public BigDecimal getPrecio() {
-		return precio;
+	public BigDecimal getPrecioCompra() {
+		return precioCompra;
 	}
 
-	public void setPrecio(BigDecimal precio) {
-		this.precio = precio;
+	public void setPrecioCompra(BigDecimal precioCompra) {
+		this.precioCompra = precioCompra;
+	}
+
+	public BigDecimal getPrecioVenta() {
+		return precioVenta;
+	}
+
+	public void setPrecioVenta(BigDecimal precioVenta) {
+		this.precioVenta = precioVenta;
 	}
 
 	public Integer getStock() {
@@ -70,5 +81,13 @@ public class ProductoDTO {
 
 	public void setCodigoBarras(String codigoBarras) {
 		this.codigoBarras = codigoBarras;
+	}
+
+	public LocalDate getFechaIngreso() {
+		return fechaIngreso;
+	}
+
+	public void setFechaIngreso(LocalDate fechaIngreso) {
+		this.fechaIngreso = fechaIngreso;
 	}
 }

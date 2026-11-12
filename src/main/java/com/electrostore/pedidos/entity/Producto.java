@@ -2,6 +2,7 @@ package com.electrostore.pedidos.entity;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "productos")
@@ -19,8 +20,11 @@ public class Producto {
 	@Column(nullable = false, length = 50)
 	private String categoria;
 
-	@Column(nullable = false, precision = 10, scale = 2)
-	private BigDecimal precio;
+	@Column(name = "precio_compra", nullable = false, precision = 10, scale = 2)
+	private BigDecimal precioCompra;
+
+	@Column(name = "precio_venta", nullable = false, precision = 10, scale = 2)
+	private BigDecimal precioVenta;
 
 	@Column(nullable = false)
 	private Integer stock;
@@ -30,6 +34,9 @@ public class Producto {
 
 	@Column(name = "codigo_barras", nullable = false, length = 100, unique = true)
 	private String codigoBarras;
+
+	@Column(name = "fecha_ingreso", nullable = false)
+	private LocalDate fechaIngreso;
 
 	public Producto() {
 	}
@@ -59,12 +66,20 @@ public class Producto {
 		this.categoria = categoria;
 	}
 
-	public BigDecimal getPrecio() {
-		return precio;
+	public BigDecimal getPrecioCompra() {
+		return precioCompra;
 	}
 
-	public void setPrecio(BigDecimal precio) {
-		this.precio = precio;
+	public void setPrecioCompra(BigDecimal precioCompra) {
+		this.precioCompra = precioCompra;
+	}
+
+	public BigDecimal getPrecioVenta() {
+		return precioVenta;
+	}
+
+	public void setPrecioVenta(BigDecimal precioVenta) {
+		this.precioVenta = precioVenta;
 	}
 
 	public Integer getStock() {
@@ -89,5 +104,13 @@ public class Producto {
 
 	public void setCodigoBarras(String codigoBarras) {
 		this.codigoBarras = codigoBarras;
+	}
+
+	public LocalDate getFechaIngreso() {
+		return fechaIngreso;
+	}
+
+	public void setFechaIngreso(LocalDate fechaIngreso) {
+		this.fechaIngreso = fechaIngreso;
 	}
 }

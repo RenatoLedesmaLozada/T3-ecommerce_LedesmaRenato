@@ -12,10 +12,11 @@ import java.util.List;
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
-	// Ejecuta la NamedQuery definida en la entidad
-	List<Producto> findByCategoria(String categoria);
+	// 1. Ejecución explícita de la NamedQuery definida en la entidad Producto
+	@Query(name = "Producto.findByCategoria")
+	List<Producto> findByCategoria(@Param("categoria") String categoria);
 
-	// Consulta JPQL con Inyección Segura (Parámetros nombrados)
-	@Query("SELECT p FROM Producto p WHERE p.marca = :marca AND p.precio <= :precioMax")
+	// 2. Consulta JPQL personalizada con Inyección Segura (Parámetros nombrados)
+	@Query("SELECT p FROM Producto p WHERE p.marca = :marca AND p.precioVenta <= :precioMax")
 	List<Producto> buscarPorMarcaYPrecioMaximo(@Param("marca") String marca, @Param("precioMax") BigDecimal precioMax);
 }

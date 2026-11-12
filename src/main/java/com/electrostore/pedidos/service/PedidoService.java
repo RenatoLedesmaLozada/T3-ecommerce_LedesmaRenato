@@ -43,7 +43,7 @@ public class PedidoService {
 				Producto producto = productoRepository.findById(item.getProductoId()).orElseThrow(
 						() -> new RuntimeException("Producto no encontrado con el ID: " + item.getProductoId()));
 
-				// Validar stock disponible
+				// Validar stock disponible (Corregido: sin la 'S' al final)
 				if (producto.getStock() < item.getCantidad()) {
 					throw new RuntimeException("Stock insuficiente para el producto: " + producto.getNombre()
 							+ ". Stock disponible: " + producto.getStock());
@@ -53,8 +53,8 @@ public class PedidoService {
 				producto.setStock(producto.getStock() - item.getCantidad());
 				productoRepository.save(producto);
 
-				// Calcular subtotal (precio_unitario * cantidad)
-				BigDecimal precioUnitario = producto.getPrecio();
+				// Calcular subtotal (precio_venta * cantidad)
+				BigDecimal precioUnitario = producto.getPrecioVenta();
 				BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(item.getCantidad()));
 				montoTotalCalculado = montoTotalCalculado.add(subtotal);
 
@@ -62,6 +62,7 @@ public class PedidoService {
 				DetallePedido detalle = new DetallePedido();
 				detalle.setPedido(pedido);
 				detalle.setProducto(producto);
+				detalle.setCantidad(item.getCantidad());
 				detalle.setPrecioUnitario(precioUnitario);
 				detalle.setSubtotal(subtotal);
 

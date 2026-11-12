@@ -70,14 +70,15 @@ public class ElectroStoreService {
 				producto.setStock(producto.getStock() - item.getCantidad());
 				productoRepository.save(producto);
 
-				BigDecimal precioUnitario = producto.getPrecio();
+				// CORREGIDO: Usamos getPrecioVenta() en lugar de getPrecio()
+				BigDecimal precioUnitario = producto.getPrecioVenta();
 				BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(item.getCantidad()));
 				montoTotalCalculado = montoTotalCalculado.add(subtotal);
 
 				DetallePedido detalle = new DetallePedido();
 				detalle.setPedido(pedido);
 				detalle.setProducto(producto);
-				detalle.setCantidad(item.getCantidad()); // <-- ESTA ES LA LÍNEA AGREGADA
+				detalle.setCantidad(item.getCantidad());
 				detalle.setPrecioUnitario(precioUnitario);
 				detalle.setSubtotal(subtotal);
 
